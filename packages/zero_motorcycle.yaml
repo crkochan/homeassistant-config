@@ -1,0 +1,269 @@
+sensor:
+  - platform: rest
+    name: Zero SR/S
+    unique_id: e6db0f50-e338-11ed-b5ea-0242ac120002
+    json_attributes:
+      - address
+      - altitude
+      - analog1
+      - analog3
+      - chargecomplete
+      - charging
+      - chargingtimeleft
+      - color
+      - datetime_actual
+      - datetime_utc
+      - door
+      - driver
+      - emergency
+      - gps_connected
+      - gps_valid
+      - heading
+      - hood
+      - ignition
+      - int_lights
+      - latitude
+      - lock
+      - logic_state
+      - longitude
+      - main_voltage
+      - mileage
+      - name
+      - oil_pressure
+      - perimeter
+      - pluggedin
+      - reason
+      - response
+      - satellites
+      - shock
+      - siren
+      - soc
+      - software_version
+      - tipover
+      - unitmodel
+      - unitnumber
+      - unittype
+      - velocity
+      - volume
+      - water_temp
+    resource: !secret zero_api_url
+    headers:
+      User-Agent: Home Assistant
+      Content-Type: application/json
+      Accept: application/json
+    method: POST
+    value_template: >-
+      {% if value_json[0].unitnumber is defined %}
+        {{ value_json[0].unitnumber }}
+      {% else %}
+        unknown
+      {% endif %}
+    scan_interval: 120
+    timeout: 30
+
+template:
+  - sensor:
+      # - name: Zero SR/S address sensor
+      #   unique_id: 451a1bda-83ee-4da0-bdf0-35cc477cc85d
+      #   icon: mdi:map-marker
+      #   state: "{{ state_attr('sensor.zero_sr_s', 'address') }}"
+      #   attributes:
+      #     unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S altitude sensor
+        unique_id: 86a02b1a-2819-4716-ac5b-5f5713877ebc
+        state: "{{ (state_attr('sensor.zero_sr_s', 'altitude') | float(0) * 3.281) | round(0) }}"
+        unit_of_measurement: 'feet'
+        state_class: measurement
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S battery sensor
+        unique_id: 598fbf09-6337-40f6-b008-073f8c36921b
+        state: "{{ state_attr('sensor.zero_sr_s', 'soc') }}"
+        unit_of_measurement: '%'
+        device_class: battery
+        state_class: measurement
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S charge status sensor
+        unique_id: fb61d821-9521-450a-8aef-b59d2a99686b
+        state: >
+          {% if is_state('binary_sensor.zero_sr_s_plugged_in_sensor', 'on') %}
+            {% if is_state('binary_sensor.zero_sr_s_charge_complete_sensor', 'on') %}
+              Complete
+            {% elif is_state('binary_sensor.zero_sr_s_charge_complete_sensor', 'off') %}
+              {% if is_state('binary_sensor.zero_sr_s_charging_sensor', 'off') %}
+                Stopped
+              {% elif is_state('binary_sensor.zero_sr_s_charging_sensor', 'on') %}
+                Charging
+              {% endif %}
+            {% endif %}
+          {% elif is_state('binary_sensor.zero_sr_s_plugged_in_sensor', 'off') %}
+            Disconnected
+          {% else %}
+            Unknown
+          {% endif %}
+        icon: mdi:ev-plug-type1
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S charge time minutes left sensor
+        unique_id: e7c3db3b-875b-4147-aacd-73eb4fa7a042
+        state: "{{ state_attr('sensor.zero_sr_s', 'chargingtimeleft') }}"
+        icon: mdi:clock-end
+        unit_of_measurement: min
+        device_class: duration
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S charge time left sensor
+        unique_id: f4e8da2b-b1ac-415b-84f6-863c60336ef0
+        state: >
+          {% if is_state('binary_sensor.zero_sr_s_charging_sensor', 'on') %}
+            {% if is_state('sensor.zero_sr_s_charge_time_minutes_left_sensor', '0') %}
+              Pending
+            {% else %}
+              {{ (timedelta(minutes=(states('sensor.zero_sr_s_charge_time_minutes_left_sensor') | int(0))) | string).split(':')[:2] | join(':') }}
+            {% endif %}
+          {% else %}
+            ---
+          {% endif %}  
+        icon: mdi:clock-end
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S main voltage sensor
+        unique_id: 565062f6-6d94-45a7-8fa4-3a4433cf2235
+        icon: mdi:car-battery
+        state: "{{ state_attr('sensor.zero_sr_s', 'main_voltage') }}"
+        state_class: measurement
+        unit_of_measurement: 'V'
+        device_class: voltage
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S mileage sensor
+        unique_id: 6de048c0-e5c9-479f-85e4-fd2e2884ef63
+        state: "{{ (state_attr('sensor.zero_sr_s', 'mileage') | float(0) / 1.609) | round(1) }}"
+        icon: mdi:counter
+        unit_of_measurement: 'mi'
+        state_class: total_increasing
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S satellites sensor
+        unique_id: 0eba597d-4077-4d85-8e94-8877df1481b2
+        state: "{{ state_attr('sensor.zero_sr_s', 'satellites') }}"
+        icon: mdi:satellite-variant
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S software version sensor
+        unique_id: 2479c85b-33b6-40ec-a7d8-d3c3262f8bde
+        icon: mdi:microsoft-windows-classic
+        state: "{{ state_attr('sensor.zero_sr_s', 'software_version') }}"
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      # - name: Zero SR/S unit number sensor
+      #   unique_id: 1e533f5a-2ea5-4618-87f9-85eadbed1acd
+      #   state: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+      #   attributes:
+      #     unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S velocity sensor
+        unique_id: ae3db2bd-8622-4439-acc5-96a8967061b8
+        state: "{{ (state_attr('sensor.zero_sr_s', 'velocity') | float(0) / 1.609) | round(0) }}"
+        unit_of_measurement: mph
+        state_class: measurement
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      # - name: Zero SR/S VIN sensor
+      #   unique_id: 45ede3f9-7d72-4923-a3d1-57669cb8bb01
+      #   state: "{{ state_attr('sensor.zero_sr_s', 'name') }}"
+      #   attributes:
+      #     unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+  - binary_sensor:
+      - name: Zero SR/S charge complete sensor
+        unique_id: 42ae6f76-66e1-4824-942d-a4a8480ef3b1
+        state: "{{ state_attr('sensor.zero_sr_s', 'chargecomplete') }}"
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S charging sensor
+        unique_id: b66fc50e-0dbb-4770-8328-c4c431230da4
+        state: "{{ state_attr('sensor.zero_sr_s', 'charging') }}"
+        device_class: battery_charging
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S GPS connected sensor
+        unique_id: 9748c221-bfba-454b-90af-f656b1f8aaf9
+        state: "{{ state_attr('sensor.zero_sr_s', 'gps_connected') }}"
+        device_class: connectivity
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S GPS valid sensor
+        unique_id: 9671c783-630a-432e-83e4-b56991a3f7fd
+        state: "{{ state_attr('sensor.zero_sr_s', 'gps_valid') }}"
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S ignition sensor
+        unique_id: fd03f90d-2528-4122-85ff-52a8fa466526
+        state: "{{ state_attr('sensor.zero_sr_s', 'ignition') }}"
+        device_class: running
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S plugged-in sensor
+        unique_id: 4640c2b1-9209-4108-a969-8042d35bd880
+        state: "{{ state_attr('sensor.zero_sr_s', 'pluggedin') }}"
+        device_class: plug
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S storage mode sensor
+        unique_id: ddb1d36b-8d6a-4f1b-8a56-40e6e52e8309
+        state: "{{ state_attr('sensor.zero_sr_s', 'storage') }}"
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+      - name: Zero SR/S tip over sensor
+        unique_id: 507b4ee7-0e12-4d24-9e92-7f2d7d34ec3b
+        state: "{{ state_attr('sensor.zero_sr_s', 'tipover') }}"
+        device_class: safety
+        attributes:
+          unitnumber: "{{ state_attr('sensor.zero_sr_s', 'unitnumber') }}"
+
+automation:
+  - alias: 'Zero SR/S: Update device tracker'
+    trigger:
+    - platform: homeassistant
+      event: start
+    - platform: state
+      entity_id:
+        - sensor.zero_sr_s
+      attribute: latitude
+    - platform: state
+      entity_id:
+        - sensor.zero_sr_s
+      attribute: longitude
+    - platform: state
+      entity_id:
+        - sensor.zero_sr_s
+      attribute: soc
+    action:
+      service: device_tracker.see
+      data_template:
+        dev_id: zero_sr_s_location_tracker
+        host_name: Zero SR/S Location Tracker
+        battery: "{{ state_attr('sensor.zero_sr_s', 'soc') }}"
+        gps:
+          - "{{ state_attr('sensor.zero_sr_s', 'latitude') }}"
+          - "{{ state_attr('sensor.zero_sr_s', 'longitude') }}"
