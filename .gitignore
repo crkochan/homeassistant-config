@@ -1,0 +1,14 @@
+secrets.yaml
+entity_registry.yaml
+.config_entries.json
+.uuid
+*.db
+*.log*
+*.conf
+*.crt
+*.key
+*.pyc
+tts
+__pycache__
+.idea
+.vscode
