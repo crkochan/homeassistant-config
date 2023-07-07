@@ -1,0 +1,283 @@
+blueprint:
+  name: Lutron Caseta Four-Button Scene Pico Actions With Looping
+  description: Short and long press automations for the Pico four-button remote, with support for looping actions.
+  domain: automation
+  input:
+    pico_remote:
+      name: Pico Four-Button Scene Remote
+      description: Select the Pico four-button scene remote to configure.
+      selector:
+        device:
+          model: PJ2-4B-GXX-X31 (Pico4ButtonScene)
+          multiple: true
+    button_1_press:
+      name: Scene One Button - Short press
+      description: Action when the scene one button is pressed.
+      default: []
+      selector:
+        action: {}
+    button_1_hold:
+      name:  Scene One Button - Long press
+      description: Action when the scene one button is held.
+      default: []
+      selector:
+        action: {}
+    button_1_release:
+      name: Scene One Button - Release
+      description: Action when the scene one button is released.
+      default: []
+      selector:
+        action: {}
+    button_1_should_loop:
+      name: Scene One Button long press should loop?
+      description: The long press action will loop until the button is released.
+      default: false
+      selector:
+        boolean:
+    button_2_press:
+      name: Scene Two Button - Short press
+      description: Action when the scene two button is pressed.
+      default: []
+      selector:
+        action: {}
+    button_2_hold:
+      name: Scene Two Button - Long press
+      description: Action when the scene two button is held.
+      default: []
+      selector:
+        action: {}
+    button_2_release:
+      name: Scene Two Button - Release
+      description: Action when the scene two button is released.
+      default: []
+      selector:
+        action: {}
+    button_2_should_loop:
+      name: Scene Two Button long press should loop?
+      description: The long press action will loop until the button is released.
+      default: false
+      selector:
+        boolean:
+    button_3_press:
+      name: Scene Three Button - Short press
+      description: Action when the scene three button is pressed.
+      default: []
+      selector:
+        action: {}
+    button_3_hold:
+      name: Scene Three Button - Long press
+      description: Action when the scene three button is held.
+      default: []
+      selector:
+        action: {}
+    button_3_release:
+      name: Scene Three Button - Released
+      description: Action when the scene three button is released.
+      default: []
+      selector:
+        action: {}
+    button_3_should_loop:
+      name: Scene Three Button long press should loop?
+      description: The long press action will loop until the button is released.
+      default: false
+      selector:
+        boolean:
+    off_button_press:
+      name: Off Button - Short Press
+      description: Action when the off button is pressed.
+      default: []
+      selector:
+        action: {}
+    off_button_hold:
+      name: Off Button - Long Press
+      description: Action when the off button is held.
+      default: []
+      selector:
+        action: {}
+    off_button_release:
+      name: Off Button - Release
+      description: Action when the off button is released.
+      default: []
+      selector:
+        action: {}
+    off_button_should_loop:
+      name: Off Button long press should loop?
+      description: The long press action will loop until the button is released.
+      default: false
+      selector:
+        boolean:
+    time_before_long_press:
+      name: Time before long press
+      description: Amount of time button needs to be held before triggering "long press" action.
+      default: 1
+      selector:
+        number:
+          min: 0.25
+          max: 10.0
+          step: 0.25
+          unit_of_measurement: seconds
+          mode: slider
+variables:
+  button_1_should_loop: !input button_1_should_loop
+  button_2_should_loop: !input button_2_should_loop
+  button_3_should_loop: !input button_3_should_loop
+  off_button_should_loop: !input off_button_should_loop
+trigger:
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'button_1'
+    id: button_1_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'button_1'
+    id: button_1_release
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'button_2'
+    id: button_2_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'button_2'
+    id: button_1_release
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'button_3'
+    id: button_3_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'button_3'
+    id: button_3_release
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'off'
+    id: off_button_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'off'
+    id: off_button_release
+action:
+  - choose:
+      # First scene button press
+      - conditions:
+          - condition: trigger
+            id: button_1_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'button_1'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not wait.trigger }}"
+                sequence:
+                - repeat: 
+                    sequence: !input button_1_hold
+                    until: '{{ not button_1_should_loop }}'
+            default: !input button_1_press
+      # First scene button release
+      - conditions:
+          - condition: trigger
+            id: button_1_release
+        sequence: !input button_1_release
+      # Second scene button press
+      - conditions:
+          - condition: trigger
+            id: button_2_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'button_2'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not wait.trigger }}"
+                sequence:
+                - repeat: 
+                    sequence: !input button_2_hold
+                    until: '{{ not button_2_should_loop }}'
+            default: !input button_2_press
+      # Second scene button release
+      - conditions:
+          - condition: trigger
+            id: button_2_release
+        sequence: !input button_2_release
+      # Third scene button press
+      - conditions:
+          - condition: trigger
+            id: button_3_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'button_3'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not wait.trigger }}"
+                sequence:
+                - repeat: 
+                    sequence: !input button_3_hold
+                    until: '{{ not button_3_should_loop }}'
+            default: !input button_3_press
+      # Third scene button release
+      - conditions:
+          - condition: trigger
+            id: button_3_release
+        sequence: !input button_3_release
+      # Off button press
+      - conditions:
+          - condition: trigger
+            id: off_button_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'off'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not wait.trigger }}"
+                sequence:
+                - repeat: 
+                    sequence: !input off_button_hold
+                    until: '{{ not off_button_should_loop }}'
+            default: !input off_button_press
+      # Off button release
+      - conditions:
+          - condition: trigger
+            id: off_button_release
+        sequence: !input off_button_release
+    default: []
+# Mode must be restart to ensure any hold loops are terminated
+mode: restart
+max_exceeded: silent

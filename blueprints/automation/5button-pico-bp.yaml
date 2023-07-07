@@ -1,0 +1,317 @@
+blueprint:
+  name: Lutron Caseta Five-Button Pico Actions
+  description: Short and long press automations for the Pico five-button remote.
+  domain: automation
+  input:
+    pico_remote:
+      name: Pico Five-Button Remote
+      description: Select the Pico five-button remote to configure.
+      selector:
+        device:
+          model: PJ2-3BRL-GXX-X01 (Pico3ButtonRaiseLower)
+          multiple: true
+    on_button_press:
+      name: Top/On button - Short press
+      description: Action when the on button is pressed.
+      default: []
+      selector:
+        action: {}
+    on_button_hold:
+      name: Top/On button - Long press
+      description: Action when the on button is held.
+      default: []
+      selector:
+        action: {}
+    on_button_release:
+      name: Top/On button - Release
+      description: Action when the on button is released.
+      default: []
+      selector:
+        action: {}
+    up_button_press:
+      name: Up arrow button - Short press
+      description: Action when the up button is pressed.
+      default: []
+      selector:
+        action: {}
+    up_button_hold:
+      name: Up arrow button - Long press
+      description: Action when the up button is held.
+      default: []
+      selector:
+        action: {}
+    up_button_should_loop:
+      name: Up arrow button long press should loop?
+      description: The long press action will loop until the button is released.
+      default: false
+      selector:
+        boolean:
+    up_button_release:
+      name: Up arrow button - Release
+      description: Action when the up button is released.
+      default: []
+      selector:
+        action: {}
+    middle_button_press:
+      name: Middle button - Short press
+      description: Action when the middle button is pressed.
+      default: []
+      selector:
+        action: {}
+    middle_button_hold:
+      name: Middle button - Long press
+      description: Action when the middle button is held.
+      default: []
+      selector:
+        action: {}
+    middle_button_release:
+      name: Middle button - Release
+      description: Action when the middle button is released.
+      default: []
+      selector:
+        action: {}
+    down_button_press:
+      name: Down arrow button - Short press
+      description: Action when the down button is pressed.
+      default: []
+      selector:
+        action: {}
+    down_button_hold:
+      name: Down arrow button - Long press
+      description: Action when the down button is held.
+      default: []
+      selector:
+        action: {}
+    down_button_should_loop:
+      name: Down arrow button long press should loop?
+      description: The long press action will loop until the button is released.
+      default: false
+      selector:
+        boolean:
+    down_button_release:
+      name: Down arrow button - Release
+      description: Action when the down button is released.
+      default: []
+      selector:
+        action: {}
+    off_button_press:
+      name: Bottom/Off button - Short press
+      description: Action when the off button is pressed.
+      default: []
+      selector:
+        action: {}
+    off_button_hold:
+      name: Bottom/Off button - Long press
+      description: Action when the off button is held.
+      default: []
+      selector:
+        action: {}
+    off_button_release:
+      name: Bottom/Off button - Release
+      description: Action when the off button is released.
+      default: []
+      selector:
+        action: {}
+    time_before_long_press:
+      name: Time before long press
+      description: Amount of time button needs to be held before triggering "long press" action.
+      default: 1
+      selector:
+        number:
+          min: 0.25
+          max: 10.0
+          step: 0.25
+          unit_of_measurement: seconds
+          mode: slider
+variables:
+  up_button_should_loop: !input up_button_should_loop
+  down_button_should_loop: !input down_button_should_loop
+trigger:
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'on'
+    id: on_button_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'on'
+    id: on_button_release
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'raise'
+    id: up_button_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'raise'
+    id: up_button_release
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'stop'
+    id: middle_button_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'stop'
+    id: middle_button_release
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'lower'
+    id: down_button_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'lower'
+    id: down_button_release
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'off'
+    id: off_button_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'off'
+    id: off_button_release
+condition: []
+action:
+  - choose:
+      # On button press
+      - conditions:
+          - condition: trigger
+            id: on_button_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'on'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: '{{ not wait.trigger }}'
+                sequence: !input on_button_hold
+            default: !input on_button_press
+      # On button release
+      - conditions:
+          - condition: trigger
+            id: on_button_release
+        sequence: !input on_button_release
+      # Up button press
+      - conditions:
+          - condition: trigger
+            id: up_button_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'raise'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: '{{ not wait.trigger }}'
+                sequence:
+                - repeat:
+                    sequence: !input up_button_hold
+                    until: '{{ not up_button_should_loop }}'
+            default: !input up_button_press
+      # Up button release
+      - conditions:
+          - condition: trigger
+            id: up_button_release
+        sequence: !input up_button_release
+      # Middle button press
+      - conditions:
+          - condition: trigger
+            id: middle_button_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'stop'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: '{{ not wait.trigger }}'
+                sequence: !input middle_button_hold
+            default: !input middle_button_press
+      # Middle button release
+      - conditions:
+          - condition: trigger
+            id: middle_button_release
+        sequence: !input middle_button_release
+      # Down button press
+      - conditions:
+          - condition: trigger
+            id: down_button_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'lower'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: '{{ not wait.trigger }}'
+                sequence:
+                - repeat:
+                    sequence: !input down_button_hold
+                    until: '{{ not down_button_should_loop }}'
+            default: !input down_button_press
+      # Down button release
+      - conditions:
+          - condition: trigger
+            id: down_button_release
+        sequence: !input down_button_release
+      # Off button press
+      - conditions:
+          - condition: trigger
+            id: off_button_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'off'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: '{{ not wait.trigger }}'
+                sequence: !input off_button_hold
+            default: !input off_button_press
+      # Off button release
+      - conditions:
+          - condition: trigger
+            id: off_button_release
+        sequence: !input off_button_release
+    default: []
+# Mode must be restart to ensure any hold loops are terminated
+mode: restart
+max_exceeded: silent

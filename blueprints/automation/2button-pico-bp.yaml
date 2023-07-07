@@ -1,0 +1,155 @@
+blueprint:
+  name: Lutron Caseta Two-Button Pico Actions
+  description: Short and long press automations for the Pico two-button remote.
+  domain: automation
+  input:
+    pico_remote:
+      name: Pico Two-Button Remote
+      description: Select the Pico two-button remote to configure.
+      selector:
+        device:
+          model: PJ2-2B-GXX-X01 (Pico2Button)
+          multiple: true
+    on_button_press:
+      name: Top/On button - Short press
+      description: Action when the on button is pressed.
+      default: []
+      selector:
+        action: {}
+    on_button_hold:
+      name: Top/On button - Long press
+      description: Action when the on button is held.
+      default: []
+      selector:
+        action: {}
+    on_button_release:
+      name: Top/On button - Release
+      description: Action when the on button is released.
+      default: []
+      selector:
+        action: {}
+    off_button_press:
+      name: Bottom/Off button - Short press
+      description: Action when the off button is pressed.
+      default: []
+      selector:
+        action: {}
+    off_button_hold:
+      name: Bottom/Off button - Long press
+      description: Action when the off button is held.
+      default: []
+      selector:
+        action: {}
+    off_button_release:
+      name: Bottom/Off button - Release
+      description: Action when the off button is released.
+      default: []
+      selector:
+        action: {}
+    time_before_long_press:
+      name: Time before long press
+      description: Amount of time button needs to be held before triggering "long press" action.
+      default: 1
+      selector:
+        number:
+          min: 0.25
+          max: 10.0
+          step: 0.25
+          unit_of_measurement: seconds
+          mode: slider
+    auto_mode:
+      name: Automation Mode
+      description: Mode that automation runs in (single,  restart, queued, parallel).
+      default: restart
+      selector:
+        select:
+          options:
+            - single
+            - restart
+            - queued
+            - parallel
+    mode_max:
+      name: Mode Max (ignored by Single and Restart Modes)
+      description: Maximum number of runs that can be executed or queued at a time.
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 15
+trigger:
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'on'
+    id: on_button_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'on'
+    id: on_button_release
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'off'
+    id: off_button_press
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: release
+    subtype: 'off'
+    id: off_button_release
+condition: []
+action:
+  - choose:
+      # On button press
+      - conditions:
+          - condition: trigger
+            id: on_button_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'on'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not wait.trigger }}"
+                sequence: !input on_button_hold
+            default: !input on_button_press
+      # On button release
+      - conditions:
+          - condition: trigger
+            id: on_button_release
+        sequence: !input on_button_release
+      # Off button press
+      - conditions:
+          - condition: trigger
+            id: off_button_press
+        sequence:
+          - wait_for_trigger:
+              - platform: device
+                device_id: !input pico_remote
+                domain: lutron_caseta
+                type: release
+                subtype: 'off'
+            timeout: !input time_before_long_press
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not wait.trigger }}"
+                sequence: !input off_button_hold
+            default: !input off_button_press
+      # Off button release
+      - conditions:
+          - condition: trigger
+            id: off_button_release
+        sequence: !input off_button_release
+    default: []
+mode: !input auto_mode
+max: !input mode_max
