@@ -212,7 +212,6 @@ variables:
     Pulse: 4
     Breath: 4
     Chase: 4
-
 action:  
 - repeat:
     for_each: !input device_list
