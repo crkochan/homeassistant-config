@@ -8,8 +8,11 @@ blueprint:
       description: Select the Pico four-button scene remote to configure.
       selector:
         device:
-          model: PJ2-4B-GXX-X31 (Pico4ButtonScene)
           multiple: false
+          filter:
+            - model: PJ2-4B-GXX-X01 (Pico4ButtonScene)
+            - model: PJ2-4B-GXX-X21 (Pico4ButtonScene)
+            - model: PJ2-4B-GXX-X31 (Pico4ButtonScene)
     button_1_press:
       name: Scene One Button - Short press
       description: Action when the scene one button is pressed.

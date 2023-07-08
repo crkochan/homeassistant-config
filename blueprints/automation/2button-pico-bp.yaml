@@ -8,8 +8,9 @@ blueprint:
       description: Select the Pico two-button remote to configure.
       selector:
         device:
-          model: PJ2-2B-GXX-X01 (Pico2Button)
           multiple: false
+          filter:
+            - model: PJ2-2B-GXX-X01 (Pico2Button)
     on_button_press:
       name: Top/On button - Short press
       description: Action when the on button is pressed.
