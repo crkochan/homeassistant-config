@@ -9,7 +9,7 @@ blueprint:
       selector:
         device:
           model: PJ2-4B-GXX-X31 (Pico4ButtonScene)
-          multiple: true
+          multiple: false
     button_1_press:
       name: Scene One Button - Short press
       description: Action when the scene one button is pressed.
