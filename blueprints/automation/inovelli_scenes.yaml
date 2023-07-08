@@ -6,7 +6,7 @@ blueprint:
     Perform actions on various scenes supported by the Inovelli On/Off or Dimmer Switches
 
     Note that the x2, x3, x4, x5 variants DO NOT work if you have put your switch in 'Instant On' mode.
-    Note for black dimmer series you need very specific firmware versions to support scenes: https://support.inovelli.com/portal/en/kb/articles/firmware-change-log-lzw31-dimmer-switch-black-series    
+    Note for black dimmer series you need very specific firmware versions to support scenes (v1.52): https://support.inovelli.com/portal/en/kb/articles/firmware-change-log-lzw31-dimmer-switch-black-series    
     
   domain: automation
   input:
