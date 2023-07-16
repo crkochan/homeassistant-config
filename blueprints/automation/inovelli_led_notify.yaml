@@ -247,7 +247,7 @@ action:
           {% else %}
             {{ effects_dimmer[effect|title]|int(default=0) }}
           {% endif %}
-        inovelli_math: |
+        clde_inovelli_math: |
           {% if trigger.id == 'on_trigger' %}
             {% if effect_int > 0 %}
               {{ color_int + (level * 256) + (duration_int * 65536) + (effect_int * 16777216) }}
@@ -256,6 +256,22 @@ action:
             {% endif %}
           {% elif trigger.id == 'off_trigger' %}
             0
+          {% endif %}
+        dlce_inovelli_math: |
+          {% if trigger.id == 'on_trigger' %}
+            {% if effect_int > 0 %}
+              {{ duration_int + (level * 256) + (color_int * 65536) + (effect_int * 16777216) }}
+            {% else %}
+              0
+            {% endif %}
+          {% elif trigger.id == 'off_trigger' %}
+            0
+          {% endif %}
+        inovelli_math: |
+          {% if 'VZW31' in model_name %}
+            {{ dlce_inovelli_math }}
+          {% else %}
+            {{ clde_inovelli_math }}
           {% endif %}
     - if:
         - condition: template
