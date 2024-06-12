@@ -41,12 +41,6 @@ blueprint:
       default: []
       selector:
         action: {}
-    up_button_should_loop:
-      name: Up arrow button long press should loop?
-      description: The long press action will loop until the button is released.
-      default: false
-      selector:
-        boolean:
     up_button_release:
       name: Up arrow button - Release
       description: Action when the up button is released.
@@ -83,12 +77,6 @@ blueprint:
       default: []
       selector:
         action: {}
-    down_button_should_loop:
-      name: Down arrow button long press should loop?
-      description: The long press action will loop until the button is released.
-      default: false
-      selector:
-        boolean:
     down_button_release:
       name: Down arrow button - Release
       description: Action when the down button is released.
@@ -124,9 +112,25 @@ blueprint:
           step: 0.25
           unit_of_measurement: seconds
           mode: slider
-variables:
-  up_button_should_loop: !input up_button_should_loop
-  down_button_should_loop: !input down_button_should_loop
+    auto_mode:
+      name: Automation Mode
+      description: Mode that automation runs in (single,  restart, queued, parallel).
+      default: single
+      selector:
+        select:
+          options:
+            - single
+            - restart
+            - queued
+            - parallel
+    mode_max:
+      name: Mode Max (ignored by Single and Restart Modes)
+      description: Maximum number of runs that can be executed or queued at a time.
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 15
 trigger:
   - platform: device
     device_id: !input pico_remote
@@ -230,10 +234,7 @@ action:
               - conditions:
                   - condition: template
                     value_template: '{{ not wait.trigger }}'
-                sequence:
-                - repeat:
-                    sequence: !input up_button_hold
-                    until: '{{ not up_button_should_loop }}'
+                sequence: !input up_button_hold
             default: !input up_button_press
       # Up button release
       - conditions:
@@ -279,10 +280,7 @@ action:
               - conditions:
                   - condition: template
                     value_template: '{{ not wait.trigger }}'
-                sequence:
-                - repeat:
-                    sequence: !input down_button_hold
-                    until: '{{ not down_button_should_loop }}'
+                sequence: !input down_button_hold
             default: !input down_button_press
       # Down button release
       - conditions:
@@ -313,6 +311,5 @@ action:
             id: off_button_release
         sequence: !input off_button_release
     default: []
-# Mode must be restart to ensure any hold loops are terminated
-mode: restart
-max_exceeded: silent
+mode: !input auto_mode
+max: !input mode_max

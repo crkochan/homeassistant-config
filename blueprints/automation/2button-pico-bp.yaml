@@ -60,8 +60,8 @@ blueprint:
           mode: slider
     auto_mode:
       name: Automation Mode
-      description: Mode that automation runs in (single,  restart, queued, parallel).
-      default: restart
+      description: Mode that automation runs in (single, restart, queued, parallel).
+      default: single
       selector:
         select:
           options:
