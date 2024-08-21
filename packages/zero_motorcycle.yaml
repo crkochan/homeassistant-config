@@ -259,7 +259,7 @@ automation:
         - sensor.zero_sr_s
       attribute: soc
     action:
-      service: device_tracker.see
+      action: device_tracker.see
       data_template:
         dev_id: zero_sr_s_location_tracker
         host_name: Zero SR/S Location Tracker
