@@ -277,7 +277,7 @@ action:
         - condition: template
           value_template: '{{ debug == true }}'
       then:
-        - service: persistent_notification.create
+        - action: persistent_notification.create
           data:
             title: 'DEBUG: inovelli_led_notify'
             notification_id: inovelli_led_notify {{ repeat.item }}
@@ -300,14 +300,14 @@ action:
       - condition: template
         value_template: '{{ inovelli_math > 0 }}'
       then:
-        - service: zwave_js.bulk_set_partial_config_parameters
+        - action: zwave_js.bulk_set_partial_config_parameters
           target:
             device_id: '{{ repeat.item }}'
           data:
             parameter: '{{ parameter }}'
             value: '{{ inovelli_math }}'
       else:
-        - service: zwave_js.bulk_set_partial_config_parameters
+        - action: zwave_js.bulk_set_partial_config_parameters
           target:
             device_id: '{{ repeat.item }}'
           data:
